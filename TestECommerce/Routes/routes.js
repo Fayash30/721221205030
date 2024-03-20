@@ -1,12 +1,35 @@
 const express = require('express');
 
+
 const router = express.Router();
 
 const companies = ['AMZ', 'FLP' , 'SNP','MYN','AZO']
+const formData = {
+    companyName: process.env.COMPANYNAME,
+    clientID: process.env.CLIENTID,
+    clientSecret: process.env.CLIENTSECRET,
+    ownerName: process.env.OWNERNAME, 
+    ownerEmail: process.env.OWNEREMAIL,
+    rollNo: process.env.ROLLNO
+}
 
-const categories = ['Phone' , 'Compnaies' , 'Laptop' , 'Tv' , 'Earphone' , 'Tablet' , 'Charger','Mouse','Keypad' ,'Bluetooth' , 'Pendrive','Remote','Speaker','Headset','Laptop','PC'];
+router.get('/categories/:categoryname/products' ,  async (req,res)=>{
 
-router.get('/categories/:categoryname/products' , async (req,res)=>{
+    try{
+
+    const accessresponse = await fetch(process.env.TOKENURL , {
+        method:'POST',
+        headers:{
+            'Content-Type': 'application/json',
+        },
+        body:JSON.stringify(formData)
+    }).then(response=>{
+        return  response.json()
+    }).catch(error =>{
+        console.error(error);
+    })
+
+    const access_token = accessresponse.access_token;
     const categoryname = req.params.categoryname;
 
     const allProducts = [];
@@ -14,20 +37,28 @@ router.get('/categories/:categoryname/products' , async (req,res)=>{
     
     for(company of companies)
     {
-        const url = "http://20.244.56.144/products/companies/`${company}`/categories/`${categoryname}`/products?top=n&minPrice=p&maxPrice=q"
-        const products = await fetch(, {
-            headers:{
-                Authorization: `Bearer ${accesstoken}`,
-            },
-        })
-        .then((response)=> response.json())
-        .catch((err)=> console.log(err))
+        const url = `http://20.244.56.144/products/companies/${company}/categories/${categoryname}/products?top=10&minPrice=100&maxPrice=10000`
+        try {
+            const products = await fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${access_token}`,
+                },
+            }).then(response => response.json());
+            allProducts.push(...products);
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
-        console.log(products);
-        allProducts = [ ...allProducts , products];
-        console.log("Allproducts")
-        console.log(allProducts)
+        //Sorted By Ratings
+        allProducts.sort((a,b)=> a.rating - b.rating).reverse();
+        topProducts = allProducts.slice(0,10); 
+        return res.status(200).json({topProducts})
+}
+catch(err){
+    return res.status(404).json(err)
+}
     }
-        return res.status(200).json({products})
-    }
-})
+)
+
+module.exports = router;

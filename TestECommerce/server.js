@@ -7,3 +7,7 @@ app.listen(process.env.PORT , ()=>{
     console.log("Server is Running...")
 })
 
+const rout = require('./Routes/routes')
+
+app.use('',rout);
+
