@@ -16,7 +16,6 @@ const formData = {
 router.get('/categories/:categoryname/products' ,  async (req,res)=>{
 
     try{
-
     const accessresponse = await fetch(process.env.TOKENURL , {
         method:'POST',
         headers:{
@@ -37,7 +36,7 @@ router.get('/categories/:categoryname/products' ,  async (req,res)=>{
     
     for(company of companies)
     {
-        const url = `http://20.244.56.144/products/companies/${company}/categories/${categoryname}/products?top=10&minPrice=100&maxPrice=10000`
+        const url = `http://20.244.56.144/products/companies/${company}/categories/${categoryname}/products?top=10&minPrice=1000&maxPrice=10000`
         try {
             const products = await fetch(url, {
                 headers: {
@@ -53,12 +52,13 @@ router.get('/categories/:categoryname/products' ,  async (req,res)=>{
         //Sorted By Ratings
         allProducts.sort((a,b)=> a.rating - b.rating).reverse();
         topProducts = allProducts.slice(0,10); 
+
+
         return res.status(200).json({topProducts})
 }
 catch(err){
     return res.status(404).json(err)
-}
     }
-)
+})
 
 module.exports = router;
